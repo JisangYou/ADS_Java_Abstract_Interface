@@ -3,6 +3,7 @@
 ## 수업 내용
 
 - abstract와 interface 학습
+- 자바에서 구현하는 callback
 
 ## Code Review
 
@@ -132,6 +133,54 @@ public class Dog extends Animal{
 }
 ```
 
+### ※ callback 
+
+1. A class
+
+```Java 
+public class A implements InterfaceC{
+
+	public void process(){
+		C c = new C();
+		// C 클래스를 사용할 준비
+		c.process(this);
+		// 실행이 끝난다음에 afterProcess
+	}
+	
+	public void afterProcess(){
+		System.out.println("실행이 완료되었습니다.");
+	}
+
+	@Override
+	public void callback() {
+		afterProcess();
+	}
+	// A 클래스 method인 process는 C class가 실행이 되고 작업이 완료가 되면 콜백이 되면서 afterProcess가 인터페이스로 오버라이드 된 콜백메소드에서 실행됨.
+}
+```
+
+2. C class
+
+```Java
+public class C {
+	public void process(InterfaceC c){
+		// 예는 처리시간이 얼마나 걸릴지 모르는 애다.. 한시간정도?
+		// 처리...
+		// ...
+		// ...
+		c.callback();
+	}	
+}
+```
+
+3. Interface C
+
+```Java
+public interface InterfaceC{
+	public void callback();
+}
+```
+
 ## 보충설명
 
 ### abstract class
@@ -213,8 +262,64 @@ public class PolymorphismOverloadingDemo {
 ```
 - 클래스 O의 메소드 a는 두개의 본체를 가지고 있다. 동시에 두개의 본체는 하나의 이름인 a를 공유하고 있다. 같은 이름이지만 서로 다른 동작 방법을 가지고 있기 때문에 오버로딩은 다형성의 한 예라고 할 수 있다.
 
+### callback
+
+- 피호출자(Callee)가 호출자(Caller)를 호출하는 것(호출자(Caller)-> 피호출자(Callee) (x))
+- A가 B를 호출하여 B가 작업을 수행하다가 어떤 시점에서 다시 B는 A를 호출, 그때 A가 정해놓은 작업을 수행하는 것.
+
+```Java
+class Callee {
+    
+    interface Callback { // 인터페이스는 외부에 구현해도 상관 없습니다.
+        void callbackMethod();
+    }
+    
+    private boolean m_condition;
+    private Callback m_callback;
+    
+    public Callee() {
+        m_condition = false;
+        m_callback = null;
+    }
+    
+    public setCallback(Callback callback) {
+        this.m_callback = callback;
+    }
+    
+    // 콜백 메서드를 호출할 수 있는지 확인
+    private checkCondition() {
+        if(m_condition && (m_callback != null))
+            m_callback.callbackMethod(); // 가능하면 콜백 메서드 호출
+    }
+    
+    ...
+}
+
+class Caller {
+    
+    private Callee callee;
+    private int value;
+    
+    public Caller() {
+        Callee.Callback callback = new Callee.Callback() {
+            @Override
+            public void callbackMethod() {
+                // 이곳에 콜백 메서드에서 할일을 구현 (값 전달, 복사...)
+            }
+        callee.setCallback(callback);
+        ...
+    }
+    
+    ...
+}
+```
+- 위와 같이 구현하여 Callee에서 checkCondition() 메서드를 통해, 현재의 작업이나 상태 등을 체크하고 Caller에게 값을 전달하거나 기능을 수행할 수 있습니다.
+
+ 일반적인 구현에서, 값을 넘겨주는 쪽이 아닌 보통 넘겨 받는 쪽이 받아올 수 있는 상황인지 물어보고 받아오는 것과 달리, 콜백에선 넘겨주는 쪽이 스스로 넘겨줄 수 있는지 확인 후 넘겨줄 수 있을 때 값을 전달해 주는 것이죠.
+
 #### 출처 : [생활코딩](https://opentutorials.org/module/516/6127)
 #### 출처 : 이것이 자바다
+#### 출처 : [Hychul's Blog](https://hychome.blogspot.kr/2015/10/java-callback.html)
 
 ## TODO
 
